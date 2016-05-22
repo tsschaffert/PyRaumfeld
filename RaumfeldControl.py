@@ -208,6 +208,18 @@ def zoneStop(name_udn):
         zone.stop()
         returndata["success"] = True
     return json.dumps(returndata)
+	
+@route('/zone/<name_udn>/setTimer/<interval>')
+def zoneSetTimer(name_udn, interval):
+    returndata = {}
+    returndata["success"] = False
+    zone = __getSingleZone(name_udn)
+    if zone != None:
+        zone.play()
+        t = threading.Timer(float(interval), zone.stop)
+        t.start()
+        returndata["success"] = True
+    return json.dumps(returndata)
 
 ################
 # Room actions
