@@ -35,6 +35,7 @@ def __getSingleRoom(name_udn):
             room = rooms[0]
     return room
 
+__activeTimers = dict()
 
 @route('/')
 def index():
@@ -208,17 +209,32 @@ def zoneStop(name_udn):
         zone.stop()
         returndata["success"] = True
     return json.dumps(returndata)
-	
+
 @route('/zone/<name_udn>/setTimer/<interval>')
 def zoneSetTimer(name_udn, interval):
     returndata = {}
     returndata["success"] = False
     zone = __getSingleZone(name_udn)
     if zone != None:
+        zoneCancelTimer(name_udn)
         zone.play()
-        t = threading.Timer(float(interval), zone.stop)
-        t.start()
+        timer = threading.Timer(float(interval), zone.stop)
+        __activeTimers[zone.UDN] = timer
+        timer.start()
         returndata["success"] = True
+    return json.dumps(returndata)
+
+@route('/zone/<name_udn>/cancelTimer')
+def zoneCancelTimer(name_udn):
+    returndata = {}
+    returndata["success"] = False
+    zone = __getSingleZone(name_udn)
+    if zone != None:
+        if zone.UDN in __activeTimers:
+            timer = __activeTimers[zone.UDN]
+            del __activeTimers[zone.UDN]
+            timer.cancel()
+            returndata["success"] = True
     return json.dumps(returndata)
 
 ################
